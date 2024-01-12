@@ -1,0 +1,139 @@
+/* CSS for Automated Volume Verification Web App */
+
+:root {
+    --default-align: center;
+    --default-max-width: 1080px;
+}
+
+body {
+    font-family: "LatoLatinWeb";
+    min-height: 100vh;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/*===== START Main =====*/
+
+form {
+    margin: auto;
+    display: flex;
+}
+.col-3 {
+    flex: 0 0 auto;
+    width: 25%;
+    padding: 20px;
+}
+
+.slack {
+    margin-bottom: 0;
+    height: 40;
+    font-size: 12px;
+}
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: auto;
+  }
+main {
+    text-align: var(--default-align);
+    max-width: var(--default-max-width);
+    display: block;
+    padding-top: 1rem;
+}
+#table-std{
+    height: 110%;
+    margin-top: -5%;
+    width: 165%;
+    margin-left: -28%;
+}
+#graph-std{
+    margin-left: -30%;
+}
+#download-button{
+    text-align: center;
+    margin-left: 37%;
+}
+h2{
+    background-color: green;
+    color:white;
+    text-align: center;
+    display: inline-block;
+    width:40%;
+}
+nav,
+input {
+    margin-bottom: 0;
+}
+input.upload {
+    margin: 10px;
+    margin-right: 0;
+    width: 40%;
+}
+input.file {
+    padding: 0.5rem 5rem;
+}
+input.upload:hover{
+    box-shadow: 0 0 6px rgb(35 173 255);
+}
+.hidden{
+    display:none;
+    }
+    
+    #mydiv{
+    height:50px;
+    width:50px;
+    color:white;
+    background-color:blue;
+    padding:10px;
+    }
+
+table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+    display: table;
+    border: 5px solid black;
+    font-size:16px;
+    background-color:rgba(0, 0, 0, 0);
+    text-align: left;
+    table-layout:auto
+  }
+.run-info-table{
+    display:table;
+    border:white;
+    background-color:rgba(0, 0, 0, 0);
+    
+}
+table .label{
+    width: 40%
+}
+p {
+    display: inline-block;
+}
+p, div {
+    max-width: 764px;
+    font-size: 1.1rem;
+}
+
+pre {
+    margin: auto;
+}
+pre code h3 {
+    font-size: 1rem;
+}
+
+/*===== END Main =====*/
+
+/*===== START Footer =====*/
+
+footer {
+    height: 2.5rem;
+    width: 100%;
+    bottom: 0;
+    position: absolute;
+}
+
+/*===== END Footer =====*/
+

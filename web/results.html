@@ -1,0 +1,189 @@
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="description" content="Automated Volume Verification">
+<meta
+    name='viewport'
+    content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0'
+/>
+<script src="./eel.js"></script>
+
+<script type="text/javascript">
+    async function get_data(){
+        var data = await eel.data_exported()();
+        console.log("Hello world!");
+        console.log(data)
+        console.log(data["value1"])
+        $(".pass-fail").html(data["passfail"])
+        if (data["passfail"] == "FAIL") {
+            document.getElementById("passfail").style.backgroundColor = "red";
+        }
+        document.getElementById("graph-std").src ="./img/standard_curve.png";
+        document.getElementById("table-std").src ="./img/STD_plate_map.png";
+        document.getElementById("sample-hm").src ="./img/sample_heatmap.png";
+        // document.getElementById("graph-std").src =data["path_std_plot"];
+        // document.getElementById("table-std").src =data["path_std_heatmap"];
+        // document.getElementById("sample-hm").src =data["path_sample_heatmap"];
+        $(".label-date").html(data["date"])
+        $(".label-plate-name").html(data["method_plate_name"])
+        $(".label-target-volume").html(data["target_volume"])
+        $(".avg-vol").html(data["value1"])
+        $(".std").html(data["value2"])
+        $(".cv").html(data["value3"])
+        $(".abs-error").html(data["value8"])
+        $(".max-vol").html(data["value6"])
+        $(".min-vol").html(data["value5"])
+        $(".range").html(data["value7"])
+        $(".median").html(data["value4"])
+
+        // setTimeout(() => {
+        // ;}, 10000);
+    }
+    get_data()
+
+</script>
+<link rel= "stylesheet" href = "./css/lib/external/bootstrap-5.3.2-dist/css/bootstrap.css">
+<link rel="stylesheet" href="./css/lib/external/mvp.css">
+<link rel="stylesheet" href="./css/latolatinfonts.css">
+<link rel="stylesheet" href="./css/stylesheet.css">
+<link class="img-fluid rounded-circle float-left mr-2" rel="shortcut icon" type="image/png" href="./img/guardant-health-droplet.png">
+<script src="./css/lib/external/jquery-3.7.1.min.js"></script>
+<script src="./css/lib/external/bootstrap-5.3.2-dist/js/bootstrap.min.js"></script>
+<!-- <script src="./js/dynamic.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<title>AutoVV Results Page</title>
+</head>
+
+<body>
+<header>
+    <nav>
+        <a href="https://guardanthealth.com/"><img alt="Logo" src="./img/Guardant-Health-corporate-logo.png" height="120"></a>
+        <ul>
+            <!-- Slack Emily -->
+            <li><a href="https://ghi.slack.com/team/U03AJVA0PR6" target="_blank"><img class="slack" src="./img/slack.jpg"></a></li>
+            <div class="slack"><i>Chat Support</i></div>
+        </ul>
+    </nav>
+</header>
+<div class="container-fluid">
+    <button id="download-button">Download as PDF</button>
+    <main id="invoice">
+
+        <h1>Tecan Spark Results</h1>
+        <h2 class = "pass-fail" id="passfail">{{passfail}}</h2>
+        <br>
+        <script>
+            const button = document.getElementById('download-button');
+
+            function generatePDF() {
+                // Choose the element that your content will be rendered to.
+                const element = document.getElementById('invoice');
+                var opt = {
+                    margin: [10,10,0,0],
+                    html2canvas:{scale:1,width:1100,height:3000},
+                    filename: "results.pdf"
+                    
+                }
+                // Choose the element and save the PDF for your user.
+                html2pdf()
+                    .set(opt)
+                    .from(element)
+                    .save();
+                }
+            button.addEventListener('click', generatePDF);
+            
+        </script>
+        <br>
+        <div>
+            <table class="run-info-table table table-sm">
+                <tbody>
+                    <tr>
+                        <td><b>Date Time:</b></td>
+                        <td class = "label-date">{{date}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Target Solution:</b></td>
+                        <td class = "label-dye">Fluorescence</td>
+                    </tr>
+                    <tr>
+                        <td><b>Tecan Spark S/N</b></td>
+                        <td class = "label-SN">2203010772</td>
+                    </tr>
+                    <tr>
+                        <td><b>Plate Name:</b></td>
+                        <td class = "label-plate-name">{{plate_name}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Target Volume:</b></td>
+                        <td class = "label-target-volume">{{target_volume}}</td>
+                    </tr>
+                    <tr>
+                        <td><b>Absolute Error pass/fail limit:</b></td>
+                        <td class = "label-error">5%</td>
+                    </tr>
+                    <tr>
+                        <td><b>Coefficient of Variation pass/fail limit:</b></td>
+                        <td class = "label-cv">5%</td>
+                    </tr>
+                </tbody>
+                
+            </table>
+        </div>
+
+        <h3>Plot for the Standards</h3>
+        <div class="row">
+            <div class="col">
+                <img id = "graph-std" src = "./img/sample_heatmap.png"alt = "line plot for standards" style="width:100%">
+            </div>
+            <div class="col">
+                <img id = "table-std"src = "./img/sample_heatmap.png" alt = "table for standards">
+            </div>
+          </div>
+        <!-- <div class="std-images">
+            <div>
+            </div>
+            <div>
+            </div>
+        </div> -->
+        <br>
+        <h3>Samples Data Analysis</h3>
+        <br>
+
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <td width = "310"><b>Average Volume</b></td>
+                    <td class = "avg-vol">{{value1}}</td>
+                    <td width = "310"><b>Standard Deviation</b></td>
+                    <td class = "std">{{value2}}</td>
+                </tr>
+                <tr>
+                    <td width = "310"><b>Coefficient of Variation (CV)</b></td>
+                    <td class = "cv">{{value3}}</td>
+                    <td width = "310"><b>Absolute Error</b></td>
+                    <td class = "abs-error">{{value8}}</td>
+                </tr>
+                <tr></tr>
+                    <td width = "310"><b>Maximum Volume</b></td>
+                    <td class = "max-vol">{{value6}}</td>
+                    <td width = "310"><b>Minimum Volume</b></td>
+                    <td class = "min-vol">{{value5}}</td>
+                </tr>
+                <tr>
+                    <td width = "310"><b>Range</b></td>
+                    <td class = "range">{{value7}}</td>
+                    <td width = "310"><b>Median Volume</b></td>
+                    <td class = "median">{{value4}}</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class = "center">
+            <img id = "sample-hm"src="./img/sample_heatmap.png"alt = "heatmap for samples" width="800"height = "500">
+        </div>
+
+    </main>
+</div>
+
+<footer>
+    <p>
+      <small>Made with ❤️</small>
+    </p>
+</footer>
