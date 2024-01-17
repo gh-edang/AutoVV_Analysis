@@ -8,7 +8,12 @@
 
 <script type="text/javascript">
     async function get_data(){
-        var data = await eel.data_exported()();
+        try{
+            var data = await eel.data_exported()();
+        } catch (FileNotFoundError) {
+            alert("File not found. Please re-run the Spark Program. If problem persists, please contact an Automation Engineer.")
+        }
+        
         console.log("Hello world!");
         console.log(data)
         console.log(data["value1"])
@@ -77,8 +82,8 @@
                 // Choose the element that your content will be rendered to.
                 const element = document.getElementById('invoice');
                 var opt = {
-                    margin: [10,10,0,0],
-                    html2canvas:{scale:1,width:1100,height:3000},
+                    margin: [10,10,5,0], //(top, left, bottom, right)
+                    html2canvas:{scale:5.0,width:1100,height:1500},
                     filename: "results.pdf"
                     
                 }

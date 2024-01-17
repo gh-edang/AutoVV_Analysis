@@ -101,6 +101,9 @@ def autoVV_Analysis():
     for x in std_file_path:
         x = x[:-1]
         lst_std_path.append(x)
+
+    print(lst_sample_info)
+    print(lst_std_path)
     sample_path = get_Excel_File(lst_sample_info[0])
     std_path = get_Excel_File(lst_std_path[0])
     method_plate = lst_sample_info[1]+ "_"+ lst_sample_info[2]
