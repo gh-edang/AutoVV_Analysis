@@ -26,7 +26,8 @@ else:
 RESULTS_PATH_SAMPLE = r"C:\Users\guardant\Documents\AutoVV\Sample_Location\Sample_fileLocation.txt"
 RESULTS_PATH_STD = r"C:\Users\guardant\Documents\AutoVV\STD_Location\STD_fileLocation.txt"
 RESULTS_PATH_BACKUPS = r"S:\OncEngDB\AutoVV Spark Output Files\Backups"
-RESULTS_PATH_LOCAL = os.path.join(base_path, 'web', 'img')
+# RESULTS_PATH_LOCAL = os.path.join(base_path, 'web', 'img')
+RESULTS_PATH_LOCAL = "web/img"
 # Create the img folder if it doesn't exist
 if not os.path.exists(RESULTS_PATH_LOCAL):
     os.makedirs(RESULTS_PATH_LOCAL)
@@ -205,12 +206,14 @@ def autoVV_Analysis():
     #formatting the sample data into a list so that we can parse it (96 well format to long list)
     sample_df = pd.read_excel(sample_path)
     sample_df = reformat_STD_map_list(0,43,52,59,sample_df)
-    sample_list = sample_df.values.flatten().tolist()
+    #print(sample_df)
+    sample_list = sample_df.values.ravel(order="F").tolist()
     #print(sample_list)
     volume_calculated = []
     #calculating the volume based off of the standard curve
     for value in sample_list:
         volume_calculated.append(round(lr_2.predict(pr.fit_transform([[value]]))[0],2))
+
     final_volume = DF96well(volume_calculated)
     std_formatted_96well = DF96well(generated_volume_std)
     print(final_volume)
@@ -226,14 +229,18 @@ def autoVV_Analysis():
 
 
 def findingStatistics(volume,targetVolume):
-    filter_volume = []      
+    filter_volume = []
+    absolute_error = []      
     for x in volume:
-        x = str(x)
-        if x =="NaN" or x =="nan":
+        str_x = str(x)
+        if str_x =="NaN" or str_x =="nan":
             pass
         else:
-            filter_volume.append(float(x))
-
+            volume_error = abs((x-targetVolume)/targetVolume)
+            absolute_error.append(volume_error)
+            filter_volume.append(float(str_x))
+    print(absolute_error)
+    abs_error=(statistics.mean(absolute_error))*100
     Results_dict = {
         "sample_avg": round(statistics.fmean(filter_volume),2),
         "sample_std": round(statistics.stdev(filter_volume),2),
@@ -243,7 +250,7 @@ def findingStatistics(volume,targetVolume):
         "sample_range" : round(max(filter_volume)-min(filter_volume),2),
     }
     cv =(abs(Results_dict["sample_std"]/Results_dict["sample_avg"])*100)
-    abs_error =(abs((Results_dict["sample_avg"]-float(targetVolume))/float(targetVolume))*100)
+    # abs_error =(abs((Results_dict["sample_avg"]-float(targetVolume))/float(targetVolume))*100)
     if abs_error<5.0 and cv <5.0:
         sample_passfail = "PASS"
     else:
