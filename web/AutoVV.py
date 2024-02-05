@@ -26,7 +26,7 @@ else:
 RESULTS_PATH_SAMPLE = r"C:\Users\guardant\Documents\AutoVV\Sample_Location\Sample_fileLocation.txt"
 RESULTS_PATH_STD = r"C:\Users\guardant\Documents\AutoVV\STD_Location\STD_fileLocation.txt"
 RESULTS_PATH_BACKUPS = r"S:\OncEngDB\AutoVV Spark Output Files\Backups"
-# RESULTS_PATH_LOCAL = os.path.join(base_path, 'web', 'img')
+#RESULTS_PATH_LOCAL = os.path.join(base_path, 'web', 'img')
 RESULTS_PATH_LOCAL = "web/img"
 # Create the img folder if it doesn't exist
 if not os.path.exists(RESULTS_PATH_LOCAL):
@@ -47,6 +47,7 @@ dict_methods_plate_volume ={
     "MBDC_DSB":55,
     "LP_ERM": 16,
     "LP_LPA": 11,
+    "LP_LOM": 15,
     "LP_LGM": 34,
     "LP_DSB": 69,
     "LP_LMO": 77.5,
@@ -89,6 +90,21 @@ def reformat_STD_map_list(start1,end1,start2,end2,df):
     formatted_df.apply(pd.to_numeric)
     return formatted_df
 
+def reformat_STD_list_to_DF(start1,end1,start2,end2,df):
+    formatted_df = df.drop(range(start1,end1))
+    formatted_df = formatted_df.drop(range(start2,end2))
+    formatted_df = formatted_df["Unnamed: 1"]
+    print(formatted_df)
+    formatted_df = DF96well(formatted_df)
+    print(formatted_df)
+    return(formatted_df)
+
+def average_std_list_values(list_1,list_2):
+    avg_list_std = []
+    for i in range(0, len(list_1)):
+        avg_list_std.append((list_1[i] + list_2[i])/2)
+    return(avg_list_std)
+    
 
 def autoVV_Analysis():
     #grabbing txt file from c# for file paths 
@@ -121,34 +137,56 @@ def autoVV_Analysis():
 
     #formmating the STD file into low mid and high
     std_df = pd.read_excel(std_path)
-    std_low = reformat_STD_map_list(0,45,54,129,std_df)
-    std_mid = reformat_STD_map_list(0,79,88,129,std_df)
-    std_high = reformat_STD_map_list(0,113,122,129,std_df)
+    print(std_df)
     
-    low_coln1 = std_low[1].tolist()
-    low_coln2 = std_low[2].tolist()
-    low_coln3 = std_low[3].tolist()
-    low_coln4 = std_low[4].tolist()
-    low_list_std = low_coln1 + low_coln2 
-    low_list_std.append(low_coln3[0]) 
-    low_list_std.append(low_coln4[0])
-    #print(low_list_std)
+    try:    
+        std_low = reformat_STD_map_list(0,45,54,129,std_df)
+        std_mid = reformat_STD_map_list(0,79,88,129,std_df)
+        std_high = reformat_STD_map_list(0,113,122,129,std_df)
+        
+        low_coln1 = std_low[1].tolist()
+        low_coln2 = std_low[2].tolist()
+        low_coln3 = std_low[3].tolist()
+        low_coln4 = std_low[4].tolist()
+        mid_coln1 = std_mid[1].tolist()
+        mid_coln2 = std_mid[2].tolist()
+        mid_coln3 = std_mid[3].tolist()
+        mid_coln4 = std_mid[4].tolist()
 
-    mid_coln1 = std_mid[1].tolist()
-    mid_coln2 = std_mid[2].tolist()
-    mid_coln3 = std_mid[3].tolist()
-    mid_coln4 = std_mid[4].tolist()
+        high_coln1 = std_high[5].tolist()
+        high_coln2 = std_high[6].tolist()
+        
+    except KeyError:
+        std_low = reformat_STD_list_to_DF(0,56,152,403,std_df)
+        std_mid = reformat_STD_list_to_DF(0,178,274,403,std_df)
+        std_high = reformat_STD_list_to_DF(0,300,396,403,std_df)
+
+        low_coln1 = std_low["1"].tolist()
+        low_coln2 = std_low["2"].tolist()
+        low_coln3 = std_low["3"].tolist()
+        low_coln4 = std_low["4"].tolist()
+
+        mid_coln1 = std_mid["1"].tolist()
+        mid_coln2 = std_mid["2"].tolist()
+        mid_coln3 = std_mid["3"].tolist()
+        mid_coln4 = std_mid["4"].tolist()
+
+        high_coln1 = std_high["5"].tolist()
+        high_coln2 = std_high["6"].tolist()
+
+    low_list_std= low_coln1+low_coln2
+    low_list_std.append((low_coln3[0]))
+    low_list_std.append(low_coln4[0])
+    print(low_list_std)
+
     mid_list_std=[]
     mid_list_std.append(mid_coln1[7]) 
-    mid_list_std.append(mid_coln2[7])
-    mid_list_std =mid_list_std+ mid_coln3 + mid_coln4
-    #print(mid_list_std)
+    mid_list_std.append(mid_coln2[7]) 
+    mid_list_std= mid_list_std + mid_coln3+mid_coln4
+    print(mid_list_std)
 
-    #print(std_high)
-    high_coln1 = std_high[5].tolist()
-    high_coln2 = std_high[6].tolist()
-    high_list_std = high_coln1 + high_coln2
-    #print(high_list_std)
+    high_list_std = high_coln1+high_coln2
+    print(high_list_std)
 
     vol_expected = dict_methods_plate_volume[method_plate]
     vol_expected = float(vol_expected)  
@@ -162,7 +200,7 @@ def autoVV_Analysis():
         expected_volume_std = standard_conc_high
         generated_volume_std = high_list_std
     print("standard RFUs: ",generated_volume_std)
-    print("standard volume Expected: ",generated_volume_std)
+    print("standard volume Expected: ",expected_volume_std)
     
     #std_formatted_96well = DF96well(new_std_list) # just used for printing into 96 well heat map
     #calculating the coefficients for the standard curve and the r2 value based off of the standard values
@@ -179,6 +217,7 @@ def autoVV_Analysis():
     lr_2 = LinearRegression()
     lr_2.fit(X_poly, expected_volume_std)
     y_pred_poly = lr_2.predict(X_poly) 
+    print(y_pred_poly)
 
     # Visualising the Polynomial Regression results
     plt.figure(figsize=(8, 8))
@@ -205,14 +244,42 @@ def autoVV_Analysis():
 
     #formatting the sample data into a list so that we can parse it (96 well format to long list)
     sample_df = pd.read_excel(sample_path)
-    sample_df = reformat_STD_map_list(0,43,52,59,sample_df)
-    #print(sample_df)
+    try:
+        sample_df = reformat_STD_map_list(0,43,52,59,sample_df)
+    except KeyError:
+        sample_df = reformat_STD_list_to_DF(0,54,152,156,sample_df)
+    print(sample_df)
     sample_list = sample_df.values.ravel(order="F").tolist()
-    #print(sample_list)
+    print(sample_list)
     volume_calculated = []
+    expected_blanks = []
+    bead_samples = []
     #calculating the volume based off of the standard curve
-    for value in sample_list:
-        volume_calculated.append(round(lr_2.predict(pr.fit_transform([[value]]))[0],2))
+    for x,value in enumerate(sample_list):
+        try:
+            int_value = int(value)
+        except ValueError:
+            int_value = 0 
+        if x >=41 and x <= 56:
+            expected_blanks.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
+        else:
+            bead_samples.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
+        volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
+    print("expected blanks: ",expected_blanks)
+    print("bead samples: ",bead_samples)
+    print("sample volume: ",volume_calculated)
+    avg_blanks = round(statistics.fmean(expected_blanks),2)
+    avg_samples = round(statistics.fmean(bead_samples),2)
+    volume_calculated= [x - (avg_samples-avg_blanks) for x in volume_calculated]
+    print("sample volume: ",volume_calculated)
+    print("avg blanks: ",avg_blanks)
+    print("avg samples: ",avg_samples)
+    # for value in sample_list:
+    #     try:
+    #         int_value = int(value)
+    #     except ValueError:
+    #         int_value = 0 
+    #     volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
 
     final_volume = DF96well(volume_calculated)
     std_formatted_96well = DF96well(generated_volume_std)
