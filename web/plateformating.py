@@ -197,20 +197,18 @@ def quadrants384_to_96(data):
 
     return QUAD1_96, QUAD2_96, QUAD3_96, QUAD4_96
 
-def createHeatMap(data,length, width, name,decimal,path):
-    RESULTS_PATH_LOCAL = r"C:\Users\guardant\Documents\AutoVV\Graphs"
-    RESULTS_PATH_BACKUPS = r"S:\OncEngDB\AutoVV Spark Output Files\Backups"
+def createHeatMap(data,length, width, name,decimal,path,vol_max,vol_min,heatmap):
+
     plt.subplots(figsize=(length,width))
     decimalFormat = "." +str(decimal) + "f"
-    heatmap_samp = sns.heatmap(data,annot = True, cmap = "Blues",fmt=decimalFormat, linewidth=.5, annot_kws={"fontsize":11})
+    if heatmap == "auto":
+        heatmap_samp = sns.heatmap(data,annot = True, cmap = "Blues",fmt=decimalFormat, linewidth=.5, annot_kws={"fontsize":11})
+    else:
+        heatmap_samp = sns.heatmap(data,annot = True, cmap = "Blues",fmt=decimalFormat, linewidth=.5, annot_kws={"fontsize":11},vmax=vol_max, vmin=vol_min)
     heatmap_samp.set(xlabel="", ylabel="")
     heatmap_samp.xaxis.tick_top()
     heatmap_samp.yaxis.tick_left()
     heatmap_samp.tick_params(axis='y', rotation=360)
-    localname = "img/" + name
     savename = os.path.join(path, name)
-    # savename = base_path + "/"+name
-    # localname = os.path.join(path,name)
     plt.savefig(savename)
-    # plt.savefig(name)
     plt.clf()

@@ -22,50 +22,54 @@ if getattr(sys, 'frozen', False):
 else:
     base_path = os.path.dirname(os.path.abspath(__file__))
 
-
+# Define the paths for the sample and standard files 
 RESULTS_PATH_SAMPLE = r"C:\Users\guardant\Documents\AutoVV\Sample_Location\Sample_fileLocation.txt"
 RESULTS_PATH_STD = r"C:\Users\guardant\Documents\AutoVV\STD_Location\STD_fileLocation.txt"
 RESULTS_PATH_BACKUPS = r"S:\OncEngDB\AutoVV Spark Output Files\Backups"
+# use this line when packaging for pyinstaller
 #RESULTS_PATH_LOCAL = os.path.join(base_path, 'web', 'img')
+# use this line when running the eel package
 RESULTS_PATH_LOCAL = "web/img"
 # Create the img folder if it doesn't exist
 if not os.path.exists(RESULTS_PATH_LOCAL):
     os.makedirs(RESULTS_PATH_LOCAL)
-standard_conc=[6,12,18,24,30,36,42,48,6,12,18,24,30,36,42,48,55,59,63,67,71,75,79,83,55,59,63,67,71,75,79,83,100,107,114,121,128,135,142,149,100,107,114,121,128,135,142,149]
+
+#defining the standard concentrations for the standard curve
 standard_conc_low =[6,12,18,24,30,36,42,48,6,12,18,24,30,36,42,48,55,55]
 standard_conc_mid=[49,49,55,59,63,67,71,75,79,83,55,59,63,67,71,75,79,83] 
 standard_conc_high=[100,107,114,121,128,135,142,149,100,107,114,121,128,135,142,149]
 
+#defining the expected volume for each method and plate and the range of the plate for heatmap
 dict_methods_plate_volume ={
-    "BE_PLC": 75,
-    "BE_UTE": 55,
-    "MBDS_PLC (dilution)": 10,
-    "MBDS_PLC (sample)": 64,
-    "MBDS_UTE": 127,
-    "MBDS_CAR":9,
-    "MBDC_PLC":32.5,
-    "MBDC_DSB":55,
-    "LP_ERM": 16,
-    "LP_LPA": 11,
-    "LP_LOM": 15,
-    "LP_LGM": 34,
-    "LP_DSB": 69,
-    "LP_LMO": 77.5,
-    "LP_LMR": 77.5,
-    "LPC_DSB": 45,
-    "LPC_PLC1": 26,
-    "LPC_PLC2": 44,
-    "ENS_PLC1": 18,
-    "ENS_PLC2": 36,
-    "ENS_FHB": 20,
-    "ENS_GBB": 28,
-    "ENS_EBB": 28,
-    "ENW_NOH": 120,
-    "ENW_TRS": 44.5,
-    "ENW_IO_": 83.5,
-    "ENW_EMM": 8,
-    "ENC_DSB": 70,
-    "ENT_PLC": 50
+    "BE_PLC": [75,68,83],
+    "BE_UTE": [55,47,63],
+    "MBDS_PLC (dilution)": [10,3,15],
+    "MBDS_PLC (sample)": [64,59,69],
+    "MBDS_UTE": [127,117,131],
+    "MBDS_CAR":[9,4,12],
+    "MBDC_PLC":[32.5,29,36],
+    "MBDC_DSB":[55,49,62],
+    "LP_ERM": [16,13,19],
+    "LP_LPA": [11,3,13],
+    "LP_LOM": [15,0,15],
+    "LP_LGM": [34,30,38],
+    "LP_DSB": [69,56,82],
+    "LP_LMO": [77.5,70,86],
+    "LP_LMR": [77.5,70,86],
+    "LPC_DSB": [45,38,53],
+    "LPC_PLC1": [26,23,29],
+    "LPC_PLC2": [44,40,48],
+    "ENS_PLC1": [18,13,21],
+    "ENS_PLC2": [36,33,39],
+    "ENS_FHB": [20,5,25],
+    "ENS_GBB": [28,23,33],
+    "ENS_EBB": [28,23,33],
+    "ENW_NOH": [120,115,125],
+    "ENW_TRS": [44.5,40,50],
+    "ENW_IO_": [83.5,76,91],
+    "ENW_EMM": [8,0,12],
+    "ENC_DSB": [70,56,85],
+    "ENT_PLC": [50,40,60]
 } 
 
 def get_Excel_File(initial_file_path):
@@ -187,9 +191,11 @@ def autoVV_Analysis():
 
     high_list_std = high_coln1+high_coln2
     print(high_list_std)
+    list_sample = dict_methods_plate_volume[method_plate]
+    vol_expected = float(list_sample[0])
+    vol_min = float(list_sample[1])
+    vol_max = float(list_sample[2])
 
-    vol_expected = dict_methods_plate_volume[method_plate]
-    vol_expected = float(vol_expected)  
     if vol_expected <50:
         expected_volume_std = standard_conc_low
         generated_volume_std = low_list_std
@@ -255,38 +261,38 @@ def autoVV_Analysis():
     expected_blanks = []
     bead_samples = []
     #calculating the volume based off of the standard curve
-    for x,value in enumerate(sample_list):
-        try:
-            int_value = int(value)
-        except ValueError:
-            int_value = 0 
-        if x >=41 and x <= 56:
-            expected_blanks.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
-        else:
-            bead_samples.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
-        volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
-    print("expected blanks: ",expected_blanks)
-    print("bead samples: ",bead_samples)
-    print("sample volume: ",volume_calculated)
-    avg_blanks = round(statistics.fmean(expected_blanks),2)
-    avg_samples = round(statistics.fmean(bead_samples),2)
-    volume_calculated= [x - (avg_samples-avg_blanks) for x in volume_calculated]
-    print("sample volume: ",volume_calculated)
-    print("avg blanks: ",avg_blanks)
-    print("avg samples: ",avg_samples)
-    # for value in sample_list:
+    # for x,value in enumerate(sample_list):
     #     try:
     #         int_value = int(value)
     #     except ValueError:
     #         int_value = 0 
+    #     if x >=41 and x <= 56:
+    #         expected_blanks.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
+    #     else:
+    #         bead_samples.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
     #     volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
+    # print("expected blanks: ",expected_blanks)
+    # print("bead samples: ",bead_samples)
+    # print("sample volume: ",volume_calculated)
+    # avg_blanks = round(statistics.fmean(expected_blanks),2)
+    # avg_samples = round(statistics.fmean(bead_samples),2)
+    # volume_calculated= [x - (avg_samples-avg_blanks) for x in volume_calculated]
+    # print("sample volume: ",volume_calculated)
+    # print("avg blanks: ",avg_blanks)
+    # print("avg samples: ",avg_samples)
+    for value in sample_list:
+        try:
+            int_value = int(value)
+        except ValueError:
+            int_value = 0 
+        volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
 
     final_volume = DF96well(volume_calculated)
     std_formatted_96well = DF96well(generated_volume_std)
     print(final_volume)
     #generating heat maps for the volume data and the standard raw data
-    createHeatMap(final_volume,15,7,"sample_heatmap.png",1,RESULTS_PATH_LOCAL)
-    createHeatMap(std_formatted_96well,15,7,"STD_plate_map.png",1,RESULTS_PATH_LOCAL)
+    createHeatMap(final_volume,15,7,"sample_heatmap.png",1,RESULTS_PATH_LOCAL,vol_max,vol_min,"manual")
+    createHeatMap(std_formatted_96well,15,7,"STD_plate_map.png",1,RESULTS_PATH_LOCAL,vol_max,vol_min,"auto")
     results_dict = {}
 
     results_dict= findingStatistics(volume_calculated,vol_expected)
