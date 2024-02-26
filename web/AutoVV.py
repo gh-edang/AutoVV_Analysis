@@ -12,6 +12,7 @@ from sklearn.metrics import r2_score
 import statistics
 import openpyxl
 from datetime import datetime
+import scipy.stats
 matplotlib.use('TkAgg',force=True)
 
 now = datetime.now()
@@ -283,9 +284,10 @@ def autoVV_Analysis():
     for value in sample_list:
         try:
             int_value = int(value)
+            volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
         except ValueError:
             int_value = 0 
-        volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
+            volume_calculated.append(0)
 
     final_volume = DF96well(volume_calculated)
     std_formatted_96well = DF96well(generated_volume_std)
@@ -295,23 +297,32 @@ def autoVV_Analysis():
     createHeatMap(std_formatted_96well,15,7,"STD_plate_map.png",1,RESULTS_PATH_LOCAL,vol_max,vol_min,"auto")
     results_dict = {}
 
-    results_dict= findingStatistics(volume_calculated,vol_expected)
+    results_dict= findingStatistics(volume_calculated,vol_expected,vol_min,vol_max,method_plate)
     
     return(results_dict,vol_expected,method_plate,base_path)
 
 
 
-def findingStatistics(volume,targetVolume):
+def findingStatistics(volume,targetVolume,vol_min,vol_max,method_plate):
     filter_volume = []
-    absolute_error = []      
+    absolute_error = []
+    out_of_range = []       
+
     for x in volume:
         str_x = str(x)
-        if str_x =="NaN" or str_x =="nan":
+        if str_x =="NaN" or str_x =="nan" or x ==0:
             pass
         else:
             volume_error = abs((x-targetVolume)/targetVolume)
             absolute_error.append(volume_error)
             filter_volume.append(float(str_x))
+        if x>vol_max or x<vol_min:
+            out_of_range.append(x)
+        
+    
+
+    int_len_out_of_range = len(out_of_range)
+    print("Out of range: ",int_len_out_of_range)
     print(absolute_error)
     abs_error=(statistics.mean(absolute_error))*100
     Results_dict = {
@@ -324,10 +335,47 @@ def findingStatistics(volume,targetVolume):
     }
     cv =(abs(Results_dict["sample_std"]/Results_dict["sample_avg"])*100)
     # abs_error =(abs((Results_dict["sample_avg"]-float(targetVolume))/float(targetVolume))*100)
-    if abs_error<5.0 and cv <5.0:
+    # if abs_error<5.0 and cv <5.0:
+    #     sample_passfail = "PASS"
+    # else:
+    #     sample_passfail = "FAIL"
+
+    if cv <5.0 and int_len_out_of_range==0:
         sample_passfail = "PASS"
-    else:
+    elif cv>5.0 and int_len_out_of_range==0:
+        sample_passfail = "PASS - MONITOR"
+    elif int_len_out_of_range>10:
         sample_passfail = "FAIL"
+    elif int_len_out_of_range<10 and int_len_out_of_range>0:
+        sorted_volume = sorted(volume)
+        #removing outliers 
+        filtered_volume = sorted_volume[5:91]
+        filtered_stdev =  round(statistics.stdev(filtered_volume),2)
+        filtered_median = round(statistics.median(filtered_volume),2)
+        #95 CI
+        filtered_CI_95_high = filtered_median+ (1.96*(filtered_stdev))
+        filtered_CI_95_low = filtered_median- (1.96*(filtered_stdev))
+        print(filtered_CI_95_high)
+        print(filtered_CI_95_low)
+        #99 CI
+        filtered_CI_99_high = filtered_median+ (2.57*(filtered_stdev))
+        filtered_CI_99_low = filtered_median- (2.57*(filtered_stdev))
+        print(filtered_CI_99_high)
+        print(filtered_CI_99_low)
+        count_95 = 0
+        count_99 = 0
+        for x in filtered_volume:
+            if x>filtered_CI_95_high or x<filtered_CI_95_low:
+                count_95 = count_95 +1
+            elif x>filtered_CI_99_high or x<filtered_CI_99_low:
+                count_99 = count_99 +1
+        print(count_95)
+        print(count_99)
+        if count_95>2:
+            sample_passfail = "FAIL"
+        else:
+            sample_passfail = "PASS"
+
 
     sample_abserror =str(round(abs_error,2)) + "%"
     sample_cv = str(round(cv,2)) + "%"
@@ -337,5 +385,6 @@ def findingStatistics(volume,targetVolume):
     print(Results_dict)
 
     return Results_dict
+
 # results = {}
 # results,vol_expected,method_plate= autoVV_Analysis()
