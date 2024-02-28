@@ -7,9 +7,10 @@ eel.init('web')
 @eel.expose
 def data_exported():
         results = {}
-        results,target_volume,plate_name,savepath = autoVV_Analysis()
+        results,target_volume,plate_name,savepath,str_vol_range = autoVV_Analysis()
         now = datetime.now()
         dt_string = now.strftime("%m/%d/%Y %H:%M:%S")
+        date_time = now.strftime("%m/%d/%Y%H%M%S")
         savepath_sample_heatmap = os.path.join(savepath,"sample_heatmap.png")
         savepath_std_curve = os.path.join(savepath,"standard_curve.png")
         savepath_std_heatmap = os.path.join(savepath,"STD_plate_map.png")
@@ -18,10 +19,12 @@ def data_exported():
                 "hidden_show": "style =visibility: hidden;",
                 "date": dt_string,
                 "target_volume": target_volume,
+                "target_range": str_vol_range,
                 "method_plate_name": plate_name,
                 "path_sample_heatmap": savepath_sample_heatmap,
                 "path_std_plot": savepath_std_curve,
                 "path_std_heatmap": savepath_std_heatmap,
+                "save_file_name": plate_name+"_results_"+date_time+".pdf",
                 # "path_sample_heatmap": "img/sample_heatmap.png",
                 # "path_std_plot": "./standard_curve.png",
                 # "path_std_heatmap": "./STD_plate_map.png",

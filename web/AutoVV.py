@@ -28,9 +28,9 @@ RESULTS_PATH_SAMPLE = r"C:\Users\guardant\Documents\AutoVV\Sample_Location\Sampl
 RESULTS_PATH_STD = r"C:\Users\guardant\Documents\AutoVV\STD_Location\STD_fileLocation.txt"
 RESULTS_PATH_BACKUPS = r"S:\OncEngDB\AutoVV Spark Output Files\Backups"
 # use this line when packaging for pyinstaller
-#RESULTS_PATH_LOCAL = os.path.join(base_path, 'web', 'img')
+RESULTS_PATH_LOCAL = os.path.join(base_path, 'web', 'img')
 # use this line when running the eel package
-RESULTS_PATH_LOCAL = "web/img"
+#RESULTS_PATH_LOCAL = "web/img"
 # Create the img folder if it doesn't exist
 if not os.path.exists(RESULTS_PATH_LOCAL):
     os.makedirs(RESULTS_PATH_LOCAL)
@@ -129,6 +129,7 @@ def autoVV_Analysis():
     sample_path = get_Excel_File(lst_sample_info[0])
     std_path = get_Excel_File(lst_std_path[0])
     method_plate = lst_sample_info[1]+ "_"+ lst_sample_info[2]
+    bln_beadsub= lst_sample_info[3]
     print(method_plate)
     print(sample_path)
     print(std_path)
@@ -143,6 +144,10 @@ def autoVV_Analysis():
     #formmating the STD file into low mid and high
     std_df = pd.read_excel(std_path)
     print(std_df)
+    lst_instrument_SN = std_df.loc[1]
+    instrument_SN = lst_instrument_SN[4]
+    instrument_SN = instrument_SN[15:]
+    print("This is Tecan Spark SN: ",instrument_SN)
     
     try:    
         std_low = reformat_STD_map_list(0,45,54,129,std_df)
@@ -196,7 +201,7 @@ def autoVV_Analysis():
     vol_expected = float(list_sample[0])
     vol_min = float(list_sample[1])
     vol_max = float(list_sample[2])
-
+    str_vol_range = str(vol_min) + " - " + str(vol_max)
     if vol_expected <50:
         expected_volume_std = standard_conc_low
         generated_volume_std = low_list_std
@@ -239,15 +244,9 @@ def autoVV_Analysis():
     plt.text(0.05 , 0.92, std_equation, fontsize=14,transform=plt.gca().transAxes)
     finalname = os.path.join(RESULTS_PATH_LOCAL, "standard_curve.png")
     # finalname = RESULTS_PATH_LOCAL + "standard_curve.png"
-    print(base_path)
-    local_finalname = "img/standard_curve.png"
-    savepath_std_curve = os.path.join(base_path,"standard_curve.png")
-    print(finalname)
 
     #print(finalname)
     plt.savefig(finalname)
-    # plt.savefig(finalname)
-    # plt.savefig("standard_curve.png")
 
     #formatting the sample data into a list so that we can parse it (96 well format to long list)
     sample_df = pd.read_excel(sample_path)
@@ -262,32 +261,30 @@ def autoVV_Analysis():
     expected_blanks = []
     bead_samples = []
     #calculating the volume based off of the standard curve
-    # for x,value in enumerate(sample_list):
-    #     try:
-    #         int_value = int(value)
-    #     except ValueError:
-    #         int_value = 0 
-    #     if x >=41 and x <= 56:
-    #         expected_blanks.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
-    #     else:
-    #         bead_samples.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
-    #     volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
-    # print("expected blanks: ",expected_blanks)
-    # print("bead samples: ",bead_samples)
-    # print("sample volume: ",volume_calculated)
-    # avg_blanks = round(statistics.fmean(expected_blanks),2)
-    # avg_samples = round(statistics.fmean(bead_samples),2)
-    # volume_calculated= [x - (avg_samples-avg_blanks) for x in volume_calculated]
-    # print("sample volume: ",volume_calculated)
-    # print("avg blanks: ",avg_blanks)
-    # print("avg samples: ",avg_samples)
-    for value in sample_list:
+    for x,value in enumerate(sample_list):
         try:
             int_value = int(value)
-            volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
         except ValueError:
             int_value = 0 
-            volume_calculated.append(0)
+        if bln_beadsub == "True":
+            if x >=41 and x <= 56:
+                expected_blanks.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
+            else:
+                bead_samples.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
+        volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
+
+    if bln_beadsub == "True":
+        avg_blanks = round(statistics.fmean(expected_blanks),2)
+        avg_samples = round(statistics.fmean(bead_samples),2)
+        volume_calculated= [x - (avg_samples-avg_blanks) for x in volume_calculated]
+
+    # for value in sample_list:
+    #     try:
+    #         int_value = int(value)
+    #         volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
+    #     except ValueError:
+    #         int_value = 0 
+    #         volume_calculated.append(0)
 
     final_volume = DF96well(volume_calculated)
     std_formatted_96well = DF96well(generated_volume_std)
@@ -299,7 +296,7 @@ def autoVV_Analysis():
 
     results_dict= findingStatistics(volume_calculated,vol_expected,vol_min,vol_max,method_plate)
     
-    return(results_dict,vol_expected,method_plate,base_path)
+    return(results_dict,vol_expected,method_plate,base_path,str_vol_range)
 
 
 
@@ -308,18 +305,25 @@ def findingStatistics(volume,targetVolume,vol_min,vol_max,method_plate):
     absolute_error = []
     out_of_range = []       
 
-    for x in volume:
-        str_x = str(x)
-        if str_x =="NaN" or str_x =="nan" or x ==0:
+    for x,y in enumerate(volume):
+        str_y = str(y)
+
+        if str_y =="NaN" or str_y =="nan" or y ==0:
             pass
         else:
-            volume_error = abs((x-targetVolume)/targetVolume)
-            absolute_error.append(volume_error)
-            filter_volume.append(float(str_x))
-        if x>vol_max or x<vol_min:
-            out_of_range.append(x)
+            if method_plate == "LP_LPA":
+                if x <33 or x>65:
+                    filter_volume.append(float(str_y))
+                    volume_error = abs((y-targetVolume)/targetVolume)
+                    absolute_error.append(volume_error)
+            else:
+                volume_error = abs((y-targetVolume)/targetVolume)
+                absolute_error.append(volume_error)
+                filter_volume.append(float(str_y))
+                if y>vol_max or y<vol_min:
+                    out_of_range.append(y)
         
-    
+    print("Volume: ",filter_volume)
 
     int_len_out_of_range = len(out_of_range)
     print("Out of range: ",int_len_out_of_range)

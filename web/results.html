@@ -30,6 +30,7 @@
         $(".label-date").html(data["date"])
         $(".label-plate-name").html(data["method_plate_name"])
         $(".label-target-volume").html(data["target_volume"])
+        $(".label-target-range").html(data["target_range"])
         $(".avg-vol").html(data["value1"])
         $(".std").html(data["value2"])
         $(".cv").html(data["value3"])
@@ -121,8 +122,8 @@
                         <td class = "label-target-volume">{{target_volume}}</td>
                     </tr>
                     <tr>
-                        <td><b>Absolute Error pass/fail limit:</b></td>
-                        <td class = "label-error">5%</td>
+                        <td><b>Target Range:</b></td>
+                        <td class = "label-target-range">{{target_range}}</td>
                     </tr>
                     <tr>
                         <td><b>Coefficient of Variation pass/fail limit:</b></td>
