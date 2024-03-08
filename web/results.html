@@ -39,7 +39,7 @@
         $(".min-vol").html(data["value5"])
         $(".range").html(data["value7"])
         $(".median").html(data["value4"])
-
+        $(".label-SN").html(data["instrument_SN"])
         // setTimeout(() => {
         // ;}, 10000);
     }
@@ -103,7 +103,7 @@
                 <tbody>
                     <tr>
                         <td><b>Date Time:</b></td>
-                        <td class = "label-date">{{date}}</td>
+                        <td class = "label-date">{{date_time1}}</td>
                     </tr>
                     <tr>
                         <td><b>Target Solution:</b></td>
@@ -111,7 +111,7 @@
                     </tr>
                     <tr>
                         <td><b>Tecan Spark S/N</b></td>
-                        <td class = "label-SN">2203010772</td>
+                        <td class = "label-SN">{{instrument_SN}}</td>
                     </tr>
                     <tr>
                         <td><b>Plate Name:</b></td>

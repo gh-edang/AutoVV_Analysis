@@ -7,7 +7,7 @@ eel.init('web')
 @eel.expose
 def data_exported():
         results = {}
-        results,target_volume,plate_name,savepath,str_vol_range = autoVV_Analysis()
+        results,target_volume,plate_name,savepath,str_vol_range,instrument_SN, date_time1 = autoVV_Analysis()
         now = datetime.now()
         dt_string = now.strftime("%m/%d/%Y %H:%M:%S")
         date_time = now.strftime("%m/%d/%Y%H%M%S")
@@ -17,7 +17,9 @@ def data_exported():
         template_vars96 = {
                 "passfail": results["pass_fail"],
                 "hidden_show": "style =visibility: hidden;",
-                "date": dt_string,
+                "instrument_SN": instrument_SN,
+                #"date": dt_string,
+                "date": date_time1,
                 "target_volume": target_volume,
                 "target_range": str_vol_range,
                 "method_plate_name": plate_name,

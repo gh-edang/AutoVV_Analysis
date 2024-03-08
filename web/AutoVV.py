@@ -28,9 +28,9 @@ RESULTS_PATH_SAMPLE = r"C:\Users\guardant\Documents\AutoVV\Sample_Location\Sampl
 RESULTS_PATH_STD = r"C:\Users\guardant\Documents\AutoVV\STD_Location\STD_fileLocation.txt"
 RESULTS_PATH_BACKUPS = r"S:\OncEngDB\AutoVV Spark Output Files\Backups"
 # use this line when packaging for pyinstaller
-RESULTS_PATH_LOCAL = os.path.join(base_path, 'web', 'img')
+#RESULTS_PATH_LOCAL = os.path.join(base_path, 'web', 'img')
 # use this line when running the eel package
-#RESULTS_PATH_LOCAL = "web/img"
+RESULTS_PATH_LOCAL = "web/img"
 # Create the img folder if it doesn't exist
 if not os.path.exists(RESULTS_PATH_LOCAL):
     os.makedirs(RESULTS_PATH_LOCAL)
@@ -142,11 +142,12 @@ def autoVV_Analysis():
 
 
     #formmating the STD file into low mid and high
+    std_df1 = pd.read_excel(std_path, header = None)
     std_df = pd.read_excel(std_path)
-    print(std_df)
-    lst_instrument_SN = std_df.loc[1]
-    instrument_SN = lst_instrument_SN[4]
-    instrument_SN = instrument_SN[15:]
+    
+    instrument_SN = std_df1.at[2,4]
+    instrument_SN = instrument_SN.replace('Serial number: ',"")
+    date_time1 = std_df1.loc[43,4]
     print("This is Tecan Spark SN: ",instrument_SN)
     
     try:    
@@ -296,7 +297,7 @@ def autoVV_Analysis():
 
     results_dict= findingStatistics(volume_calculated,vol_expected,vol_min,vol_max,method_plate)
     
-    return(results_dict,vol_expected,method_plate,base_path,str_vol_range)
+    return(results_dict,vol_expected,method_plate,base_path,str_vol_range,instrument_SN,date_time1)
 
 
 
