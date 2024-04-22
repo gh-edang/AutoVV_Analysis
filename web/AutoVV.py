@@ -25,7 +25,8 @@ else:
 
 # Define the paths for the sample and standard files 
 RESULTS_PATH_SAMPLE = r"C:\Users\guardant\Documents\AutoVV\Sample_Location\Sample_fileLocation.txt"
-RESULTS_PATH_STD = r"C:\Users\guardant\Documents\AutoVV\STD_Location\STD_fileLocation.txt"
+RESULTS_PATH_STD_4TT = r"C:\Users\guardant\Documents\AutoVV\STD_Location\STD_fileLocation.txt"
+RESULTS_PATH_STD_EPP = r"C:\Users\guardant\Documents\AutoVV\STD_Location\STD_EPP_fileLocation.txt"
 RESULTS_PATH_BACKUPS = r"S:\OncEngDB\AutoVV Spark Output Files\Backups"
 # use this line when packaging for pyinstaller
 #RESULTS_PATH_LOCAL = os.path.join(base_path, 'web', 'img')
@@ -35,45 +36,84 @@ RESULTS_PATH_LOCAL = "web/img"
 if not os.path.exists(RESULTS_PATH_LOCAL):
     os.makedirs(RESULTS_PATH_LOCAL)
 
+
 #defining the standard concentrations for the standard curve
+standard_conc_superLow = [5,5,5,5,7,7,9,9]
 standard_conc_low =[6,12,18,24,30,36,42,48,6,12,18,24,30,36,42,48,55,55]
 standard_conc_mid=[49,49,55,59,63,67,71,75,79,83,55,59,63,67,71,75,79,83] 
 standard_conc_high=[100,107,114,121,128,135,142,149,100,107,114,121,128,135,142,149]
 
+
 #defining the expected volume for each method and plate and the range of the plate for heatmap
+# methodname_plate = [expected_volume, min_volume, max_volume, flag for beadsub, plate_type(4TT/EPP)]
+# odd plates - Norms input plates, MBDS dil + sample, RNA + DNA LPA
 dict_methods_plate_volume ={
-    "BE_PLC": [75,68,83],
-    "BE_UTE": [55,47,63],
-    "MBDS_PLC (dilution)": [10,3,15],
-    "MBDS_PLC (sample)": [64,59,69],
-    "MBDS_UTE": [127,117,131],
-    "MBDS_CAR":[9,4,12],
-    "MBDC_PLC":[32.5,29,36],
-    "MBDC_DSB":[55,49,62],
-    "LP_ERM": [16,13,19],
-    "LP_LPA": [11,3,13],
-    "LP_LOM": [15,0,15],
-    "LP_LGM": [34,30,38],
-    "LP_DSB": [69,56,82],
-    "LP_LMO": [77.5,70,86],
-    "LP_LMR": [77.5,70,86],
-    "LPC_DSB": [45,38,53],
-    "LPC_PLC1": [26,23,29],
-    "LPC_PLC2": [44,40,48],
-    "ENS_PLC1": [18,13,21],
-    "ENS_PLC2": [36,33,39],
-    "ENS_FHB": [20,5,25],
-    "ENS_GBB": [28,23,33],
-    "ENS_EBB": [28,23,33],
-    "ENW_NOH": [120,115,125],
-    "ENW_TRS": [44.5,40,50],
-    "ENW_IO_": [83.5,76,91],
-    "ENW_EMM": [8,0,12],
-    "ENC_DSB": [70,56,85],
-    "ENT_PLC": [50,40,60]
+    #pre methods (phoenix + LY)
+    "BE_PLC": [75,68,83,1,"4TT"], #BeadSub (LY)
+    "BE_UTE": [55,47,63,0,"4TT"], #LY
+    "MBDS_PLC (dilution)": [10,3,15,0,"4TT"],#LY
+    "MBDS_PLC (sample)": [64,59,69,0,"4TT"],#LY
+    "MBDS_UTE": [127,117,131,0,"4TT"],#LY
+    "MBDS_CAR":[9,4,12,0,"4TT"],#LY
+    "MBDC_PLC":[32.5,29,36,"4TT"], #BeadSub
+    "MBDC_DSB":[55,49,62,0,"4TT"],
+    "LP_ERM": [16,13,19,0,"4TT"],
+    "LP_LPA": [11,3,13,0,"4TT"],
+    "LP_LOY": [30,24,33,0,"EPP"],
+    "LP_LOR": [10,8,12,0,"EPP"],
+    "LP_LGM": [34,30,38,0,"4TT"],
+    "LP_DSB": [69,56,82,0,"4TT"],
+    "LP_LMO": [77.5,70,86,1,"4TT"], #BeadSub
+    "LP_LMR": [77.5,70,86,1,"4TT"], #BeadSub
+    #phoenix specific methods (PRE)
+    "DNQ_PLC (Output)":[46,38,48,0,"4TT"],
+    "DNQ_PLC (Dilution)":[36,32,40,0,"4TT"],
+    "DNN_PLC (Input)":[35,30,40,0,"4TT"],
+    "DNN_PLC (Output)":[29,26,32,0,"4TT"],
+    "EFR_NUB":[9,7,11,0,"EPP"],
+    "EFR_NFR":[9,7,10,0,"EPP"],
+    "EFR_NPK":[9,7,10,0,"EPP"],
+    "EFR_PLC":[90,81,99,1,"4TT"], #BeadSub
+    #phoenix RNA methods
+    "RNQ_PLC (Output)":[66,56,68,0,"4TT"],
+    "RNQ_PLC (Sample Working)":[10,7,11,0,"4TT"],
+    "RNQ_PLC (Standard Working)":[10,7,11,0,"4TT"],
+    "RNN_PLC (Input)":[52,50,60,0,"4TT"],
+    "RNN_PLC (Output)":[5,4,6,0,"4TT"],
+    "cDNA_NRP":[4,2,5,0,"EPP"],
+    "cDNA_N1B":[5,2,7,0,"EPP"],
+    "cDNA_N1S":[5,2,7,0,"EPP"],
+    "cDNA_N1E":[28,25,31,0,"EPP"],
+    "cDNA_N2B":[5,4,8,0,"EPP"],
+    "cDNA_N2E":[30,27,33,0,"EPP"],
+    "cDNA_PLC":[32.5,29,36,1,"4TT"], #BeadSub
+    "cDNA_DSB":[84,75,93,0,"4TT"],
+    "RLP_LPA":[11,3,13,0,"4TT"],
+    "RLP_ERM":[22.5,18,25,0,"4TT"],
+    "RLP_LOR":[10,8,12,0,"EPP"],
+    "RLP_LGM":[56,50,62,0,"4TT"],
+    "RLP_LMO":[77.5,70,86,1,"4TT"],#BeadSub
+    "RLP_USER":[4,2,6,0,"EPP"],
+    #post methods (ENS for phoenix is different)
+    "LPC_DSB": [45,38,53,0,"4TT"],
+    "LPC_PLC (Genomic)": [26,23,29,1,"4TT"], #BeadSub
+    "LPC_PLC (Epi)": [44,40,48,1,"4TT"], #BeadSub
+    "ENS_PLC (Genomic)": [18,13,21,0,"4TT"],
+    "ENS_PLC (Epi)": [36,33,39,0,"4TT"],
+    "ENS_FHB": [20,5,25,0,"4TT"],
+    "ENS_GBB": [28,23,33,0,"4TT"],
+    "ENS_EBB": [28,23,33,0,"4TT"],
+    "ENW_NOH": [120,115,125,0,"4TT"],
+    "ENW_TRS": [44.5,40,50,0,"4TT"],
+    "ENW_IO_": [83.5,76,91,0,"4TT"],
+    "ENW_EMM": [8,0,12,0,"4TT"],
+    "ENC_DSB": [70,56,85,0,"4TT"],
+    "ENT_PLC": [50,40,60,0,"4TT"],
 } 
 
 def get_Excel_File(initial_file_path):
+    print("Getting Excel File", initial_file_path)
+    print("\n")
     sample_path = os.path.split(initial_file_path) 
     file_path = sample_path[0][:-3] + "xlsx"
     files = os.listdir(file_path)
@@ -109,30 +149,38 @@ def average_std_list_values(list_1,list_2):
     for i in range(0, len(list_1)):
         avg_list_std.append((list_1[i] + list_2[i])/2)
     return(avg_list_std)
-    
+
 
 def autoVV_Analysis():
     #grabbing txt file from c# for file paths 
+    print("Getting txt files for results and standards", RESULTS_PATH_SAMPLE , RESULTS_PATH_STD_4TT, RESULTS_PATH_STD_EPP)
     sample_file_path = open(RESULTS_PATH_SAMPLE, "r")
-    std_file_path = open(RESULTS_PATH_STD, "r")
     lst_std_path = []
     lst_sample_info = []
+
     for x in sample_file_path:
         x =x[:-1]
         lst_sample_info.append(x)
-    for x in std_file_path:
-        x = x[:-1]
-        lst_std_path.append(x)
 
     print(lst_sample_info)
     print(lst_std_path)
     sample_path = get_Excel_File(lst_sample_info[0])
     std_path = get_Excel_File(lst_std_path[0])
     method_plate = lst_sample_info[1]+ "_"+ lst_sample_info[2]
-    bln_beadsub= lst_sample_info[3]
-    print(method_plate)
-    print(sample_path)
-    print(std_path)
+
+    if dict_methods_plate_volume[method_plate][5] == "EPP":
+        std_file_path = open(RESULTS_PATH_STD_EPP, "r")
+    else:
+        std_file_path = open(RESULTS_PATH_STD_4TT, "r")
+    
+    for x in std_file_path:
+        x = x[:-1]
+        lst_std_path.append(x)
+
+    print("Method + Plate Name: ",method_plate)
+    print("Sample Path: ", sample_path)
+    print("STD Path: ",std_path)
+
     folder_name = dt_string + "_"+ method_plate
     save_path = os.path.join(RESULTS_PATH_BACKUPS,folder_name)
 
@@ -140,20 +188,20 @@ def autoVV_Analysis():
     if not os.path.exists(save_path):
         os.makedirs(save_path)
 
-
     #formmating the STD file into low mid and high
     std_df1 = pd.read_excel(std_path, header = None)
     std_df = pd.read_excel(std_path)
     
     instrument_SN = std_df1.at[2,4]
     instrument_SN = instrument_SN.replace('Serial number: ',"")
-    date_time1 = std_df1.loc[43,4]
+    date_time1 = std_df1.loc[44,4]
     print("This is Tecan Spark SN: ",instrument_SN)
     
     try:    
-        std_low = reformat_STD_map_list(0,45,54,129,std_df)
-        std_mid = reformat_STD_map_list(0,79,88,129,std_df)
-        std_high = reformat_STD_map_list(0,113,122,129,std_df)
+        std_superLow = reformat_STD_map_list(0,148,157,164,std_df)
+        std_low = reformat_STD_map_list(0,46,55,164,std_df)
+        std_mid = reformat_STD_map_list(0,80,89,164,std_df)
+        std_high = reformat_STD_map_list(0,114,123,164,std_df)
         
         low_coln1 = std_low[1].tolist()
         low_coln2 = std_low[2].tolist()
@@ -166,7 +214,10 @@ def autoVV_Analysis():
 
         high_coln1 = std_high[5].tolist()
         high_coln2 = std_high[6].tolist()
-        
+
+        splow_coln1 = std_superLow[7].tolist()
+
+    # Exception for when .xlsx file is formatted in list format instead of plate format
     except KeyError:
         std_low = reformat_STD_list_to_DF(0,56,152,403,std_df)
         std_mid = reformat_STD_list_to_DF(0,178,274,403,std_df)
@@ -184,6 +235,9 @@ def autoVV_Analysis():
 
         high_coln1 = std_high["5"].tolist()
         high_coln2 = std_high["6"].tolist()
+
+    splow_list_std = splow_coln1
+    print(splow_list_std)
 
     low_list_std= low_coln1+low_coln2
     low_list_std.append((low_coln3[0]))
@@ -203,15 +257,23 @@ def autoVV_Analysis():
     vol_min = float(list_sample[1])
     vol_max = float(list_sample[2])
     str_vol_range = str(vol_min) + " - " + str(vol_max)
-    if vol_expected <50:
+    standardCurveName = ""
+    if vol_expected <11:
+        expected_volume_std = standard_conc_superLow
+        generated_volume_std = splow_list_std
+        standardCurveName = "Super Low Volume Standard Curve"
+    if vol_expected >11 and vol_expected <50:
         expected_volume_std = standard_conc_low
         generated_volume_std = low_list_std
+        standardCurveName = "Low Volume Standard Curve"
     elif vol_expected >= 50 and vol_expected < 100:
         expected_volume_std = standard_conc_mid
         generated_volume_std = mid_list_std
+        standardCurveName = "Mid Volume Standard Curve"
     elif vol_expected >= 100:
         expected_volume_std = standard_conc_high
         generated_volume_std = high_list_std
+        standardCurveName = "High Volume Standard Curve"
     print("standard RFUs: ",generated_volume_std)
     print("standard volume Expected: ",expected_volume_std)
     
@@ -236,7 +298,7 @@ def autoVV_Analysis():
     plt.figure(figsize=(8, 8))
     plt.scatter(generated_volume_std,expected_volume_std)
     plt.plot(generated_volume_std, lr_2.predict(X_poly),color = 'firebrick')
-    plt.title("Standard Curve")
+    plt.title(standardCurveName + "\n" + "Standard Generated: " +date_time1)
     plt.ylabel("Concentration (uL)")
     plt.xlabel("Raw Data (RFU)")
 
@@ -267,14 +329,14 @@ def autoVV_Analysis():
             int_value = int(value)
         except ValueError:
             int_value = 0 
-        if bln_beadsub == "True":
+        if dict_methods_plate_volume[method_plate][4] == 1:
             if x >=41 and x <= 56:
                 expected_blanks.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
             else:
                 bead_samples.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
         volume_calculated.append(round(lr_2.predict(pr.fit_transform([[int_value]]))[0],2))
 
-    if bln_beadsub == "True":
+    if dict_methods_plate_volume[method_plate][4] == 1:
         avg_blanks = round(statistics.fmean(expected_blanks),2)
         avg_samples = round(statistics.fmean(bead_samples),2)
         volume_calculated= [x - (avg_samples-avg_blanks) for x in volume_calculated]
