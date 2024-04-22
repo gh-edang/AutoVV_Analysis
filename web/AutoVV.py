@@ -36,6 +36,10 @@ RESULTS_PATH_LOCAL = "web/img"
 if not os.path.exists(RESULTS_PATH_LOCAL):
     os.makedirs(RESULTS_PATH_LOCAL)
 
+#thiehoafwjifaew
+#jfoiejawoifje
+#JIOFJEIO
+
 
 #defining the standard concentrations for the standard curve
 standard_conc_superLow = [5,5,5,5,7,7,9,9]
